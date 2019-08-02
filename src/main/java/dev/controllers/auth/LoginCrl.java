@@ -37,18 +37,19 @@ public class LoginCrl extends HttpServlet {
 
 		if (userOpt.isPresent()) {
 			User user = userOpt.get();
-			req.getSession().setAttribute("connectedUser", user);
 
 			String key = "message top secret";
 
-			String data = user.getFirstname() + ", " + user.getLastname() + ", " + user.getLogin() + ", "
-					+ user.getAdmin().toString();
+			String data = user.getFirstname() + "," + user.getLastname() + "," + user.getLogin() + ","
+					+ user.getAdmin();
 
-			String signature = new HmacUtils(HmacAlgorithms.HMAC_SHA_256, key).hmacHex(data);
+			String dataHashe = Base64.getUrlEncoder().encodeToString(data.getBytes());
 
-			String cookieValue = Base64.getUrlEncoder().encodeToString(data.getBytes()) + "." + signature;
+			String signature = new HmacUtils(HmacAlgorithms.HMAC_SHA_256, key).hmacHex(dataHashe);
 
-			Cookie monCookie = new Cookie("Cookie", cookieValue);
+			String cookieValue = dataHashe + "." + signature;
+
+			Cookie monCookie = new Cookie("AUTH", cookieValue);
 			monCookie.setHttpOnly(true);
 			resp.addCookie(monCookie);
 
